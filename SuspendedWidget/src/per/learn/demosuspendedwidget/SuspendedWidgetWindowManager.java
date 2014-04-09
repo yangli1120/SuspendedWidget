@@ -7,15 +7,21 @@ import android.content.Context;
 import android.graphics.PixelFormat;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.view.animation.LayoutAnimationController;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
+
+import com.nineoldandroids.animation.Animator;
+import com.nineoldandroids.animation.Animator.AnimatorListener;
+import com.nineoldandroids.animation.AnimatorSet;
+import com.nineoldandroids.animation.ObjectAnimator;
 
 public class SuspendedWidgetWindowManager {
 
@@ -43,9 +49,15 @@ public class SuspendedWidgetWindowManager {
     private static Animation mReverseAnim;
     private static Animation mRotateAnim;
     private static Animation mReverseRotateAnim;
+    private static AnimatorSet animSet;
 
     public static final int DEFAULT_STATUSBAR_HEIGHT = 38;
     private static int mStatusBarHeight = 38;
+    public static final int TOUCH_SLOP = ViewConfiguration.getTouchSlop();
+
+    private static int mLastWidgetX = -1;
+    private static int mLastWidgetY = -1;
+    private static boolean mIsWidgetDragging = false;
 
     private SuspendedWidgetWindowManager() {}
 
@@ -74,9 +86,9 @@ public class SuspendedWidgetWindowManager {
         if(mSmallWidget == null) {
             mSmallWidget = LayoutInflater.from(context).inflate(
                     R.layout.layout_small_widget, null);
-            int widgetWidth = context.getResources().getDimensionPixelSize(
+            final int widgetWidth = context.getResources().getDimensionPixelSize(
                     R.dimen.small_widget_width);
-            int widgetHeight = context.getResources().getDimensionPixelSize(
+            final int widgetHeight = context.getResources().getDimensionPixelSize(
                     R.dimen.small_widget_height);
 
             mSmallWidget.findViewById(R.id.small_widget_btn).setOnClickListener(
@@ -90,12 +102,130 @@ public class SuspendedWidgetWindowManager {
                 }
             });
 
+            //let small widget can been dragged everywhere
+            mSmallWidget.findViewById(R.id.small_widget_btn).setOnTouchListener(
+                    new View.OnTouchListener() {
+
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    int curX = (int)event.getRawX();
+                    int curY = (int)event.getRawY();
+                    int screenWidth = mWindowMgr.getDefaultDisplay().getWidth();
+                    int screenHeight = mWindowMgr.getDefaultDisplay().getHeight();
+
+                    switch(event.getAction()) {
+                        case MotionEvent.ACTION_DOWN: {
+                            if(mIsWidgetDragging)
+                                return true;
+                        }break;
+
+                        case MotionEvent.ACTION_MOVE: {
+                            if(Math.sqrt(Math.pow(curX - mLastWidgetX, 2) +
+                                    Math.pow(curY - mLastWidgetY, 2)) >= TOUCH_SLOP) {
+                                LogUtil.Log("ACTION_MOVE, curX = " + curX +
+                                        ", curY = " + curY);
+
+                                updateSmallWidgetLocation(context, curX, curY);
+
+                                mIsWidgetDragging = true;
+                            }
+                        }break;
+
+                        case MotionEvent.ACTION_UP: {
+                            LogUtil.Log("SuspendedWidgetWindowManager.createSmallWidget.onTouch()" +
+                                    ", ACTION_UP");
+                            if(mSmallWidget == null || !mIsWidgetDragging)
+                                break;
+
+                            int factY = curY - getStatusBarHeight(context);
+                            mSmallWidgetParams = getWindowManagerParams();
+                            mSmallWidgetParams.gravity = Gravity.LEFT | Gravity.TOP;
+                            mSmallWidgetParams.flags |= WindowManager.LayoutParams
+                                    .FLAG_FORCE_NOT_FULLSCREEN;
+
+                            //use AnimationSet to complete the translate animation
+                            animSet = new AnimatorSet();
+
+                            if(curX <= screenWidth / 2 && factY <= screenHeight / 2) {
+                                //the target position we want
+                                mSmallWidgetParams.x = 0;
+                                mSmallWidgetParams.y = getStatusBarHeight(context);
+
+                                //mWindowMgr.updateViewLayout(mSmallWidget, mSmallWidgetParams);
+                            } else if(curX <= screenWidth / 2 && factY > screenHeight / 2) {
+                                //the target position we want
+                                mSmallWidgetParams.x = 0;
+                                mSmallWidgetParams.y = screenHeight - getStatusBarHeight(context)
+                                        - widgetHeight;
+
+                                //mWindowMgr.updateViewLayout(mSmallWidget, mSmallWidgetParams);
+                            } else if(curX > screenWidth / 2 && factY <= screenHeight / 2) {
+                                mSmallWidgetParams.x = screenWidth - widgetWidth;
+                                mSmallWidgetParams.y = getStatusBarHeight(context);
+
+                                //mWindowMgr.updateViewLayout(mSmallWidget, mSmallWidgetParams);
+                            } else if(curX > screenWidth / 2 && factY > screenHeight / 2) {
+                                mSmallWidgetParams.x = screenWidth - widgetWidth;
+                                mSmallWidgetParams.y = screenHeight - getStatusBarHeight(context)
+                                        - widgetHeight;
+
+                                //mWindowMgr.updateViewLayout(mSmallWidget, mSmallWidgetParams);
+                            }
+
+
+                            //play translate animation
+                            View widget = mSmallWidget.findViewById(R.id.small_widget_btn);
+                            animSet.playTogether(
+                                    ObjectAnimator.ofFloat(widget, "translationX",
+                                            curX, mSmallWidgetParams.x),
+                                    ObjectAnimator.ofFloat(widget, "translationY",
+                                            factY, mSmallWidgetParams.y));
+                            animSet.addListener(new AnimatorListener() {
+
+                                @Override
+                                public void onAnimationStart(Animator arg0) {
+                                }
+
+                                @Override
+                                public void onAnimationRepeat(Animator arg0) {
+                                }
+
+                                @Override
+                                public void onAnimationEnd(Animator arg0) {
+                                    mIsWidgetDragging = false;
+
+                                    //after the translate animation, we need update
+                                    //the paramaters of the view
+                                    mWindowMgr.updateViewLayout(mSmallWidget, mSmallWidgetParams);
+                                }
+
+                                @Override
+                                public void onAnimationCancel(Animator arg0) {
+                                }
+                            });
+                            animSet.setDuration(800);
+                            animSet.start();
+
+                            mLastWidgetX = mSmallWidgetParams.x;
+                            mLastWidgetY = mSmallWidgetParams.y;
+
+                            return mIsWidgetDragging;
+                        }
+                    }
+
+                    return false;
+                }
+            });
+
             mSmallWidgetParams = getWindowManagerParams();
             mSmallWidgetParams.gravity = Gravity.LEFT | Gravity.TOP;
             mSmallWidgetParams.flags |= WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN;
             mSmallWidgetParams.x = screenWidth - widgetWidth;
             mSmallWidgetParams.y = screenHeight - getStatusBarHeight(context)
                     - widgetHeight;
+
+            mLastWidgetX = mSmallWidgetParams.x;
+            mLastWidgetY = mSmallWidgetParams.y;
 
             try {
                 mWindowMgr.addView(mSmallWidget, mSmallWidgetParams);
@@ -379,5 +509,21 @@ public class SuspendedWidgetWindowManager {
         }
 
         return mStatusBarHeight;
+    }
+
+    public static void updateSmallWidgetLocation(Context context, int x, int y) {
+        if(mSmallWidget == null)
+            return;
+
+        mSmallWidgetParams = getWindowManagerParams();
+        mSmallWidgetParams.gravity = Gravity.LEFT | Gravity.TOP;
+        mSmallWidgetParams.flags |= WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN;
+        mSmallWidgetParams.x = x;
+        mSmallWidgetParams.y = y - getStatusBarHeight(context);
+
+        mWindowMgr.updateViewLayout(mSmallWidget, mSmallWidgetParams);
+
+        mLastWidgetX = mSmallWidgetParams.x;
+        mLastWidgetY = mSmallWidgetParams.y;
     }
 }

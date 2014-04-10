@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 
 import per.learn.demosuspendedwidget.util.LogUtil;
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.PixelFormat;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -13,9 +14,9 @@ import android.view.ViewConfiguration;
 import android.view.WindowManager;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
+import android.view.animation.BounceInterpolator;
+import android.view.animation.OvershootInterpolator;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
@@ -38,22 +39,14 @@ public class SuspendedWidgetWindowManager {
     private static WindowManager.LayoutParams mTempWidgetParams;
 
     private static Button mCollectBtn;
-    private static LinearLayout mCollectBtnLl;
     private static Button mBuyBtn;
-    private static LinearLayout mBuyBtnLl;
     private static Button mSelectBtn;
-    private static LinearLayout mSelectBtnLl;
     private static Button mEditBtn;
-    private static LinearLayout mEditBtnLl;
     private static Button mListBtn;
-    private static LinearLayout mListBtnLl;
     private static Button mSmallWidgetBtn;
 
-    private static Animation mTranlateAnim;
-    private static Animation mReverseAnim;
-    private static Animation mRotateAnim;
-    private static Animation mReverseRotateAnim;
-    private static AnimatorSet animSet;
+    private static AnimatorSet mAnimSet;
+    private static AnimatorSet mRotateAnimSet;
 
     public static final int DEFAULT_STATUSBAR_HEIGHT = 38;
     private static int mStatusBarHeight = 38;
@@ -126,9 +119,6 @@ public class SuspendedWidgetWindowManager {
                         case MotionEvent.ACTION_MOVE: {
                             if(Math.sqrt(Math.pow(curX - mLastWidgetX, 2) +
                                     Math.pow(curY - mLastWidgetY, 2)) >= TOUCH_SLOP) {
-                                LogUtil.Log("ACTION_MOVE, curX = " + curX +
-                                        ", curY = " + curY);
-
                                 updateSmallWidgetLocation(context, curX, curY);
 
                                 mIsWidgetDragging = true;
@@ -136,8 +126,6 @@ public class SuspendedWidgetWindowManager {
                         }break;
 
                         case MotionEvent.ACTION_UP: {
-                            LogUtil.Log("SuspendedWidgetWindowManager.createSmallWidget.onTouch()" +
-                                    ", ACTION_UP");
                             if(mSmallWidget == null || !mIsWidgetDragging)
                                 break;
 
@@ -160,7 +148,7 @@ public class SuspendedWidgetWindowManager {
                                     WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
 
                             //use AnimationSet to complete the translate animation
-                            animSet = new AnimatorSet();
+                            mAnimSet = new AnimatorSet();
 
                             if(curX <= screenWidth / 2 && factY <= screenHeight / 2) {
                                 //the target position we want
@@ -193,13 +181,13 @@ public class SuspendedWidgetWindowManager {
                             mWindowMgr.addView(mTempWidget, mTempWidgetParams);
                             mWindowMgr.removeView(mSmallWidget);
                             View widget = mTempWidget.findViewById(R.id.temp_widget_btn);
-                            animSet.playTogether(
+                            mAnimSet.playTogether(
                                     ObjectAnimator.ofFloat(widget, "translationX",
                                             curX, mSmallWidgetParams.x),
                                     ObjectAnimator.ofFloat(widget, "translationY",
                                             factY, mSmallWidgetParams.y));
-                            animSet.setInterpolator(new AccelerateInterpolator());
-                            animSet.addListener(new AnimatorListener() {
+                            mAnimSet.setInterpolator(new AccelerateInterpolator());
+                            mAnimSet.addListener(new AnimatorListener() {
 
                                 @Override
                                 public void onAnimationStart(Animator arg0) {
@@ -223,8 +211,8 @@ public class SuspendedWidgetWindowManager {
                                 public void onAnimationCancel(Animator arg0) {
                                 }
                             });
-                            animSet.setDuration(300);
-                            animSet.start();
+                            mAnimSet.setDuration(300);
+                            mAnimSet.start();
 
                             mLastWidgetX = mSmallWidgetParams.x;
                             mLastWidgetY = mSmallWidgetParams.y;
@@ -298,37 +286,71 @@ public class SuspendedWidgetWindowManager {
 
         if(mBigWidget == null) {
             mBigWidget = (RelativeLayout) LayoutInflater.from(context).inflate(
-                    R.layout.layout_big_widget, null);
+                    R.layout.layout_big_widget_right_bottom, null);
             mBigWidget.setOnClickListener(new View.OnClickListener() {
 
                 @Override
                 public void onClick(View v) {
                     if(isNeedPlayReverseAnim()) {
-                        mReverseAnim = AnimationUtils.loadAnimation(context, R.anim.anim_item_pull_back);
-                        mCollectBtnLl.startAnimation(mReverseAnim);
-                        mBuyBtnLl.startAnimation(mReverseAnim);
-                        mSelectBtnLl.startAnimation(mReverseAnim);
-                        mEditBtnLl.startAnimation(mReverseAnim);
-                        mListBtnLl.startAnimation(mReverseAnim);
+                        //reverse translate animation for five child button
+                        Resources res = context.getResources();
+                        mAnimSet = new AnimatorSet();
+                        mAnimSet.playTogether(
+                                ObjectAnimator.ofFloat(mBuyBtn, "translationX",
+                                        0, res.getDimension(R.dimen.circle_menu_radius)),
+                                ObjectAnimator.ofFloat(mBuyBtn, "scaleX", 1, 0),
+                                ObjectAnimator.ofFloat(mBuyBtn, "scaleY", 1, 0),
+                                ObjectAnimator.ofFloat(mSelectBtn, "translationX",
+                                        0, res.getDimension(R.dimen.circle_menu_button_1_x)),
+                                ObjectAnimator.ofFloat(mSelectBtn, "translationY",
+                                        0, res.getDimension(R.dimen.circle_menu_button_1_y)),
+                                ObjectAnimator.ofFloat(mSelectBtn, "scaleX", 1, 0),
+                                ObjectAnimator.ofFloat(mSelectBtn, "scaleY", 1, 0),
+                                ObjectAnimator.ofFloat(mListBtn, "translationX",
+                                        0, res.getDimension(R.dimen.circle_menu_button_2_x)),
+                                ObjectAnimator.ofFloat(mListBtn, "translationY",
+                                        0, res.getDimension(R.dimen.circle_menu_button_2_y)),
+                                ObjectAnimator.ofFloat(mListBtn, "scaleX", 1, 0),
+                                ObjectAnimator.ofFloat(mListBtn, "scaleY", 1, 0),
+                                ObjectAnimator.ofFloat(mEditBtn, "translationX",
+                                        0, res.getDimension(R.dimen.circle_menu_button_3_x)),
+                                ObjectAnimator.ofFloat(mEditBtn, "translationY",
+                                        0, res.getDimension(R.dimen.circle_menu_button_3_y)),
+                                ObjectAnimator.ofFloat(mEditBtn, "scaleX", 1, 0),
+                                ObjectAnimator.ofFloat(mEditBtn, "scaleY", 1, 0),
+                                ObjectAnimator.ofFloat(mCollectBtn, "translationY",
+                                        0, res.getDimension(R.dimen.circle_menu_radius)),
+                                ObjectAnimator.ofFloat(mCollectBtn, "scaleX", 1, 0),
+                                ObjectAnimator.ofFloat(mCollectBtn, "scaleY", 1, 0)
+                                );
+                        mAnimSet.setInterpolator(new OvershootInterpolator());
+                        mAnimSet.setDuration(350).start();
+                        //reverse rotation animation for the main button
+                        mRotateAnimSet = new AnimatorSet();
+                        mRotateAnimSet.playTogether(ObjectAnimator.ofFloat(mSmallWidgetBtn,
+                                "rotation", 540, 0));
+                        mRotateAnimSet.setInterpolator(new BounceInterpolator());
+                        mRotateAnimSet.addListener(new AnimatorListener() {
 
-                        mReverseRotateAnim = AnimationUtils.loadAnimation(context,
-                                R.anim.anim_reverse_rotate);
-                        mReverseRotateAnim.setAnimationListener(new Animation.AnimationListener() {
                             @Override
-                            public void onAnimationStart(Animation animation) {
+                            public void onAnimationStart(Animator arg0) {
                             }
                             
                             @Override
-                            public void onAnimationRepeat(Animation animation) {
+                            public void onAnimationRepeat(Animator arg0) {
                             }
                             
                             @Override
-                            public void onAnimationEnd(Animation animation) {
+                            public void onAnimationEnd(Animator arg0) {
                                 removeBigWidget(context);
                                 createSmallWidget(context);
                             }
+
+                            @Override
+                            public void onAnimationCancel(Animator arg0) {
+                            }
                         });
-                        mSmallWidgetBtn.startAnimation(mReverseRotateAnim);
+                        mRotateAnimSet.setDuration(350).start();
                     } else {
                         removeBigWidget(context);
                         createSmallWidget(context);
@@ -336,7 +358,6 @@ public class SuspendedWidgetWindowManager {
                 }
             });
             mCollectBtn = (Button)mBigWidget.findViewById(R.id.collect_btn);
-            mCollectBtnLl = (LinearLayout)mBigWidget.findViewById(R.id.collect_btn_ll);
             mCollectBtn.setOnClickListener(
                     new View.OnClickListener() {
 
@@ -346,7 +367,6 @@ public class SuspendedWidgetWindowManager {
                 }
             });
             mBuyBtn = (Button)mBigWidget.findViewById(R.id.buy_btn);
-            mBuyBtnLl = (LinearLayout)mBigWidget.findViewById(R.id.buy_btn_ll);
             mBuyBtn.setOnClickListener(
                     new View.OnClickListener() {
 
@@ -356,7 +376,6 @@ public class SuspendedWidgetWindowManager {
                 }
             });
             mSelectBtn = (Button)mBigWidget.findViewById(R.id.select_btn);
-            mSelectBtnLl = (LinearLayout)mBigWidget.findViewById(R.id.select_btn_ll);
             mSelectBtn.setOnClickListener(
                     new View.OnClickListener() {
 
@@ -366,7 +385,6 @@ public class SuspendedWidgetWindowManager {
                 }
             });
             mEditBtn = (Button)mBigWidget.findViewById(R.id.edit_btn);
-            mEditBtnLl = (LinearLayout)mBigWidget.findViewById(R.id.edit_btn_ll);
             mEditBtn.setOnClickListener(new View.OnClickListener() {
 
                 @Override
@@ -375,7 +393,6 @@ public class SuspendedWidgetWindowManager {
                 }
             });
             mListBtn = (Button)mBigWidget.findViewById(R.id.list_btn);
-            mListBtnLl = (LinearLayout)mBigWidget.findViewById(R.id.list_btn_ll);
             mListBtn.setOnClickListener(new View.OnClickListener() {
 
                 @Override
@@ -390,31 +407,65 @@ public class SuspendedWidgetWindowManager {
                 @Override
                 public void onClick(View v) {
                     if(isNeedPlayReverseAnim()) {
-                        mReverseAnim = AnimationUtils.loadAnimation(context, R.anim.anim_item_pull_back);
-                        mCollectBtnLl.startAnimation(mReverseAnim);
-                        mBuyBtnLl.startAnimation(mReverseAnim);
-                        mSelectBtnLl.startAnimation(mReverseAnim);
-                        mEditBtnLl.startAnimation(mReverseAnim);
-                        mListBtnLl.startAnimation(mReverseAnim);
+                        //reverse translate animation for five child button
+                        Resources res = context.getResources();
+                        mAnimSet = new AnimatorSet();
+                        mAnimSet.playTogether(
+                                ObjectAnimator.ofFloat(mBuyBtn, "translationX",
+                                        0, res.getDimension(R.dimen.circle_menu_radius)),
+                                ObjectAnimator.ofFloat(mBuyBtn, "scaleX", 1, 0),
+                                ObjectAnimator.ofFloat(mBuyBtn, "scaleY", 1, 0),
+                                ObjectAnimator.ofFloat(mSelectBtn, "translationX",
+                                        0, res.getDimension(R.dimen.circle_menu_button_1_x)),
+                                ObjectAnimator.ofFloat(mSelectBtn, "translationY",
+                                        0, res.getDimension(R.dimen.circle_menu_button_1_y)),
+                                ObjectAnimator.ofFloat(mSelectBtn, "scaleX", 1, 0),
+                                ObjectAnimator.ofFloat(mSelectBtn, "scaleY", 1, 0),
+                                ObjectAnimator.ofFloat(mListBtn, "translationX",
+                                        0, res.getDimension(R.dimen.circle_menu_button_2_x)),
+                                ObjectAnimator.ofFloat(mListBtn, "translationY",
+                                        0, res.getDimension(R.dimen.circle_menu_button_2_y)),
+                                ObjectAnimator.ofFloat(mListBtn, "scaleX", 1, 0),
+                                ObjectAnimator.ofFloat(mListBtn, "scaleY", 1, 0),
+                                ObjectAnimator.ofFloat(mEditBtn, "translationX",
+                                        0, res.getDimension(R.dimen.circle_menu_button_3_x)),
+                                ObjectAnimator.ofFloat(mEditBtn, "translationY",
+                                        0, res.getDimension(R.dimen.circle_menu_button_3_y)),
+                                ObjectAnimator.ofFloat(mEditBtn, "scaleX", 1, 0),
+                                ObjectAnimator.ofFloat(mEditBtn, "scaleY", 1, 0),
+                                ObjectAnimator.ofFloat(mCollectBtn, "translationY",
+                                        0, res.getDimension(R.dimen.circle_menu_radius)),
+                                ObjectAnimator.ofFloat(mCollectBtn, "scaleX", 1, 0),
+                                ObjectAnimator.ofFloat(mCollectBtn, "scaleY", 1, 0)
+                                );
+                        mAnimSet.setInterpolator(new OvershootInterpolator());
+                        mAnimSet.setDuration(350).start();
+                        //reverse rotation animation for the main button
+                        mRotateAnimSet = new AnimatorSet();
+                        mRotateAnimSet.playTogether(ObjectAnimator.ofFloat(mSmallWidgetBtn,
+                                "rotation", 540, 0));
+                        mRotateAnimSet.setInterpolator(new BounceInterpolator());
+                        mRotateAnimSet.addListener(new AnimatorListener() {
 
-                        mReverseRotateAnim = AnimationUtils.loadAnimation(context,
-                                R.anim.anim_reverse_rotate);
-                        mReverseRotateAnim.setAnimationListener(new Animation.AnimationListener() {
                             @Override
-                            public void onAnimationStart(Animation animation) {
+                            public void onAnimationStart(Animator arg0) {
                             }
                             
                             @Override
-                            public void onAnimationRepeat(Animation animation) {
+                            public void onAnimationRepeat(Animator arg0) {
                             }
                             
                             @Override
-                            public void onAnimationEnd(Animation animation) {
+                            public void onAnimationEnd(Animator arg0) {
                                 removeBigWidget(context);
                                 createSmallWidget(context);
                             }
+
+                            @Override
+                            public void onAnimationCancel(Animator arg0) {
+                            }
                         });
-                        mSmallWidgetBtn.startAnimation(mReverseRotateAnim);
+                        mRotateAnimSet.setDuration(350).start();
                     } else {
                         removeBigWidget(context);
                         createSmallWidget(context);
@@ -440,14 +491,45 @@ public class SuspendedWidgetWindowManager {
             }
 
             //play animation
-            mTranlateAnim = AnimationUtils.loadAnimation(context, R.anim.anim_item_push_out);
-            mCollectBtnLl.startAnimation(mTranlateAnim);
-            mBuyBtnLl.startAnimation(mTranlateAnim);
-            mSelectBtnLl.startAnimation(mTranlateAnim);
-            mEditBtnLl.startAnimation(mTranlateAnim);
-            mListBtnLl.startAnimation(mTranlateAnim);
-            mRotateAnim = AnimationUtils.loadAnimation(context, R.anim.anim_normal_rotate);
-            mSmallWidgetBtn.startAnimation(mRotateAnim);
+            //translation animation for five child button
+            Resources res = context.getResources();
+            mAnimSet = new AnimatorSet();
+            mAnimSet.playTogether(
+                    ObjectAnimator.ofFloat(mBuyBtn, "translationX",
+                            res.getDimension(R.dimen.circle_menu_radius), 0),
+                    ObjectAnimator.ofFloat(mBuyBtn, "scaleX", 0, 1),
+                    ObjectAnimator.ofFloat(mBuyBtn, "scaleY", 0, 1),
+                    ObjectAnimator.ofFloat(mSelectBtn, "translationX",
+                            res.getDimension(R.dimen.circle_menu_button_1_x), 0),
+                    ObjectAnimator.ofFloat(mSelectBtn, "translationY",
+                            res.getDimension(R.dimen.circle_menu_button_1_y), 0),
+                    ObjectAnimator.ofFloat(mSelectBtn, "scaleX", 0, 1),
+                    ObjectAnimator.ofFloat(mSelectBtn, "scaleY", 0, 1),
+                    ObjectAnimator.ofFloat(mListBtn, "translationX",
+                            res.getDimension(R.dimen.circle_menu_button_2_x), 0),
+                    ObjectAnimator.ofFloat(mListBtn, "translationY",
+                            res.getDimension(R.dimen.circle_menu_button_2_y), 0),
+                    ObjectAnimator.ofFloat(mListBtn, "scaleX", 0, 1),
+                    ObjectAnimator.ofFloat(mListBtn, "scaleY", 0, 1),
+                    ObjectAnimator.ofFloat(mEditBtn, "translationX",
+                            res.getDimension(R.dimen.circle_menu_button_3_x), 0),
+                    ObjectAnimator.ofFloat(mEditBtn, "translationY",
+                            res.getDimension(R.dimen.circle_menu_button_3_y), 0),
+                    ObjectAnimator.ofFloat(mEditBtn, "scaleX", 0, 1),
+                    ObjectAnimator.ofFloat(mEditBtn, "scaleY", 0, 1),
+                    ObjectAnimator.ofFloat(mCollectBtn, "translationY",
+                            res.getDimension(R.dimen.circle_menu_radius), 0),
+                    ObjectAnimator.ofFloat(mCollectBtn, "scaleX", 0, 1),
+                    ObjectAnimator.ofFloat(mCollectBtn, "scaleY", 0, 1)
+                    );
+            mAnimSet.setInterpolator(new OvershootInterpolator());
+            mAnimSet.setDuration(350).start();
+            //rotation animation for the main button
+            mRotateAnimSet = new AnimatorSet();
+            mRotateAnimSet.playTogether(
+                    ObjectAnimator.ofFloat(mSmallWidgetBtn, "rotation", 0, 540));
+            mRotateAnimSet.setInterpolator(new BounceInterpolator());
+            mRotateAnimSet.setDuration(300).start();
         }
 
         return true;

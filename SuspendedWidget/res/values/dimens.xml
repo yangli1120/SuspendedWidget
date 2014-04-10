@@ -6,4 +6,11 @@
     <dimen name="small_widget_width">40dp</dimen>
     <dimen name="small_widget_height">40dp</dimen>
 
+    <dimen name="circle_menu_radius">150dp</dimen>
+    <dimen name="circle_menu_button_1_x">138.58dp</dimen>
+    <dimen name="circle_menu_button_1_y">57.40dp</dimen>
+    <dimen name="circle_menu_button_2_x">106.06dp</dimen>
+    <dimen name="circle_menu_button_2_y">106.06dp</dimen>
+    <dimen name="circle_menu_button_3_x">57.40dp</dimen>
+    <dimen name="circle_menu_button_3_y">138.58dp</dimen>
 </resources>

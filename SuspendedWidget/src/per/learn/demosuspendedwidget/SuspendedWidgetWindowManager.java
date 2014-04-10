@@ -11,6 +11,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.WindowManager;
+import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
@@ -32,6 +33,9 @@ public class SuspendedWidgetWindowManager {
     private static WindowManager mWindowMgr;
     private static WindowManager.LayoutParams mSmallWidgetParams;
     private static WindowManager.LayoutParams mBigWidgetParams;
+
+    private static View mTempWidget;
+    private static WindowManager.LayoutParams mTempWidgetParams;
 
     private static Button mCollectBtn;
     private static LinearLayout mCollectBtnLl;
@@ -143,6 +147,18 @@ public class SuspendedWidgetWindowManager {
                             mSmallWidgetParams.flags |= WindowManager.LayoutParams
                                     .FLAG_FORCE_NOT_FULLSCREEN;
 
+                            mTempWidget = LayoutInflater.from(context).inflate(
+                                    R.layout.layout_temp_widget, null);
+                            mTempWidgetParams = getWindowManagerParams();
+                            mTempWidgetParams.x = 0;
+                            mTempWidgetParams.y = 0;
+                            mTempWidgetParams.width = WindowManager.LayoutParams.MATCH_PARENT;
+                            mTempWidgetParams.height = WindowManager.LayoutParams.MATCH_PARENT;
+                            mTempWidgetParams.format = PixelFormat.RGBA_8888;
+                            mTempWidgetParams.gravity = Gravity.LEFT | Gravity.TOP;
+                            mTempWidgetParams.flags |= WindowManager.LayoutParams.FLAG_FULLSCREEN |
+                                    WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
+
                             //use AnimationSet to complete the translate animation
                             animSet = new AnimatorSet();
 
@@ -174,12 +190,15 @@ public class SuspendedWidgetWindowManager {
 
 
                             //play translate animation
-                            View widget = mSmallWidget.findViewById(R.id.small_widget_btn);
+                            mWindowMgr.addView(mTempWidget, mTempWidgetParams);
+                            mWindowMgr.removeView(mSmallWidget);
+                            View widget = mTempWidget.findViewById(R.id.temp_widget_btn);
                             animSet.playTogether(
                                     ObjectAnimator.ofFloat(widget, "translationX",
                                             curX, mSmallWidgetParams.x),
                                     ObjectAnimator.ofFloat(widget, "translationY",
                                             factY, mSmallWidgetParams.y));
+                            animSet.setInterpolator(new AccelerateInterpolator());
                             animSet.addListener(new AnimatorListener() {
 
                                 @Override
@@ -196,14 +215,15 @@ public class SuspendedWidgetWindowManager {
 
                                     //after the translate animation, we need update
                                     //the paramaters of the view
-                                    mWindowMgr.updateViewLayout(mSmallWidget, mSmallWidgetParams);
+                                    mWindowMgr.addView(mSmallWidget, mSmallWidgetParams);
+                                    mWindowMgr.removeView(mTempWidget);
                                 }
 
                                 @Override
                                 public void onAnimationCancel(Animator arg0) {
                                 }
                             });
-                            animSet.setDuration(800);
+                            animSet.setDuration(300);
                             animSet.start();
 
                             mLastWidgetX = mSmallWidgetParams.x;

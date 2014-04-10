@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/transparent_bg">"
+    <Button
+        android:id="@+id/temp_widget_btn"
+        android:layout_height="@dimen/small_widget_width"
+        android:layout_width="@dimen/small_widget_height"
+        android:padding="10dp"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:background="@drawable/bump"/>
+
+</LinearLayout>

@@ -328,36 +328,8 @@ public class SuspendedWidgetWindowManager {
                 public void onClick(View v) {
                     if(isNeedPlayReverseAnim()) {
                         //reverse translate animation for five child button
-                        Resources res = context.getResources();
-                        mAnimSet = new AnimatorSet();
-                        mAnimSet.playTogether(
-                                ObjectAnimator.ofFloat(mBuyBtn, "translationX",
-                                        0, res.getDimension(R.dimen.circle_menu_radius)),
-                                ObjectAnimator.ofFloat(mBuyBtn, "scaleX", 1, 0),
-                                ObjectAnimator.ofFloat(mBuyBtn, "scaleY", 1, 0),
-                                ObjectAnimator.ofFloat(mSelectBtn, "translationX",
-                                        0, res.getDimension(R.dimen.circle_menu_button_1_x)),
-                                ObjectAnimator.ofFloat(mSelectBtn, "translationY",
-                                        0, res.getDimension(R.dimen.circle_menu_button_1_y)),
-                                ObjectAnimator.ofFloat(mSelectBtn, "scaleX", 1, 0),
-                                ObjectAnimator.ofFloat(mSelectBtn, "scaleY", 1, 0),
-                                ObjectAnimator.ofFloat(mListBtn, "translationX",
-                                        0, res.getDimension(R.dimen.circle_menu_button_2_x)),
-                                ObjectAnimator.ofFloat(mListBtn, "translationY",
-                                        0, res.getDimension(R.dimen.circle_menu_button_2_y)),
-                                ObjectAnimator.ofFloat(mListBtn, "scaleX", 1, 0),
-                                ObjectAnimator.ofFloat(mListBtn, "scaleY", 1, 0),
-                                ObjectAnimator.ofFloat(mEditBtn, "translationX",
-                                        0, res.getDimension(R.dimen.circle_menu_button_3_x)),
-                                ObjectAnimator.ofFloat(mEditBtn, "translationY",
-                                        0, res.getDimension(R.dimen.circle_menu_button_3_y)),
-                                ObjectAnimator.ofFloat(mEditBtn, "scaleX", 1, 0),
-                                ObjectAnimator.ofFloat(mEditBtn, "scaleY", 1, 0),
-                                ObjectAnimator.ofFloat(mCollectBtn, "translationY",
-                                        0, res.getDimension(R.dimen.circle_menu_radius)),
-                                ObjectAnimator.ofFloat(mCollectBtn, "scaleX", 1, 0),
-                                ObjectAnimator.ofFloat(mCollectBtn, "scaleY", 1, 0)
-                                );
+                        mAnimSet = getReverseAnimSetByLocation(context,
+                                mWidgetCurrentLocation);
                         mAnimSet.setInterpolator(new OvershootInterpolator());
                         mAnimSet.setDuration(350).start();
                         //reverse rotation animation for the main button
@@ -443,36 +415,8 @@ public class SuspendedWidgetWindowManager {
                 public void onClick(View v) {
                     if(isNeedPlayReverseAnim()) {
                         //reverse translate animation for five child button
-                        Resources res = context.getResources();
-                        mAnimSet = new AnimatorSet();
-                        mAnimSet.playTogether(
-                                ObjectAnimator.ofFloat(mBuyBtn, "translationX",
-                                        0, res.getDimension(R.dimen.circle_menu_radius)),
-                                ObjectAnimator.ofFloat(mBuyBtn, "scaleX", 1, 0),
-                                ObjectAnimator.ofFloat(mBuyBtn, "scaleY", 1, 0),
-                                ObjectAnimator.ofFloat(mSelectBtn, "translationX",
-                                        0, res.getDimension(R.dimen.circle_menu_button_1_x)),
-                                ObjectAnimator.ofFloat(mSelectBtn, "translationY",
-                                        0, res.getDimension(R.dimen.circle_menu_button_1_y)),
-                                ObjectAnimator.ofFloat(mSelectBtn, "scaleX", 1, 0),
-                                ObjectAnimator.ofFloat(mSelectBtn, "scaleY", 1, 0),
-                                ObjectAnimator.ofFloat(mListBtn, "translationX",
-                                        0, res.getDimension(R.dimen.circle_menu_button_2_x)),
-                                ObjectAnimator.ofFloat(mListBtn, "translationY",
-                                        0, res.getDimension(R.dimen.circle_menu_button_2_y)),
-                                ObjectAnimator.ofFloat(mListBtn, "scaleX", 1, 0),
-                                ObjectAnimator.ofFloat(mListBtn, "scaleY", 1, 0),
-                                ObjectAnimator.ofFloat(mEditBtn, "translationX",
-                                        0, res.getDimension(R.dimen.circle_menu_button_3_x)),
-                                ObjectAnimator.ofFloat(mEditBtn, "translationY",
-                                        0, res.getDimension(R.dimen.circle_menu_button_3_y)),
-                                ObjectAnimator.ofFloat(mEditBtn, "scaleX", 1, 0),
-                                ObjectAnimator.ofFloat(mEditBtn, "scaleY", 1, 0),
-                                ObjectAnimator.ofFloat(mCollectBtn, "translationY",
-                                        0, res.getDimension(R.dimen.circle_menu_radius)),
-                                ObjectAnimator.ofFloat(mCollectBtn, "scaleX", 1, 0),
-                                ObjectAnimator.ofFloat(mCollectBtn, "scaleY", 1, 0)
-                                );
+                        mAnimSet = getReverseAnimSetByLocation(context,
+                                mWidgetCurrentLocation);
                         mAnimSet.setInterpolator(new OvershootInterpolator());
                         mAnimSet.setDuration(350).start();
                         //reverse rotation animation for the main button
@@ -694,7 +638,71 @@ public class SuspendedWidgetWindowManager {
         return set;
     }
 
-    private static AnimatorSet getReverseAnimSetByLocation(Context context, int location) {
-        return null;
+    private static AnimatorSet getReverseAnimSetByLocation(Context context, int loc) {
+        Resources res = context.getResources();
+
+        AnimatorSet set = new AnimatorSet();
+        set.playTogether(
+                ObjectAnimator.ofFloat(mBuyBtn, "translationX",
+                        0,
+                        loc == LOCATION_RIGHT_BOTTOM || loc == LOCATION_RIGHT_TOP
+                                ? res.getDimension(R.dimen.circle_menu_radius)
+                                        : -res.getDimension(R.dimen.circle_menu_radius)
+                        ),
+                ObjectAnimator.ofFloat(mBuyBtn, "scaleX", 1, 0),
+                ObjectAnimator.ofFloat(mBuyBtn, "scaleY", 1, 0),
+                ObjectAnimator.ofFloat(mSelectBtn, "translationX",
+                        0,
+                        loc == LOCATION_RIGHT_BOTTOM || loc == LOCATION_RIGHT_TOP
+                                ? res.getDimension(R.dimen.circle_menu_button_1_x)
+                                        : -res.getDimension(R.dimen.circle_menu_button_1_x)
+                        ),
+                ObjectAnimator.ofFloat(mSelectBtn, "translationY",
+                        0,
+                        loc == LOCATION_LEFT_BOTTOM || loc == LOCATION_RIGHT_BOTTOM
+                                ? res.getDimension(R.dimen.circle_menu_button_1_y)
+                                        : -res.getDimension(R.dimen.circle_menu_button_1_y)
+                        ),
+                ObjectAnimator.ofFloat(mSelectBtn, "scaleX", 1, 0),
+                ObjectAnimator.ofFloat(mSelectBtn, "scaleY", 1, 0),
+                ObjectAnimator.ofFloat(mListBtn, "translationX",
+                        0,
+                        loc == LOCATION_RIGHT_BOTTOM || loc == LOCATION_RIGHT_TOP
+                                ? res.getDimension(R.dimen.circle_menu_button_2_x)
+                                        : -res.getDimension(R.dimen.circle_menu_button_2_x)
+                        ),
+                ObjectAnimator.ofFloat(mListBtn, "translationY",
+                        0,
+                        loc == LOCATION_LEFT_BOTTOM || loc == LOCATION_RIGHT_BOTTOM
+                                ? res.getDimension(R.dimen.circle_menu_button_2_y)
+                                        : -res.getDimension(R.dimen.circle_menu_button_2_y)
+                        ),
+                ObjectAnimator.ofFloat(mListBtn, "scaleX", 1, 0),
+                ObjectAnimator.ofFloat(mListBtn, "scaleY", 1, 0),
+                ObjectAnimator.ofFloat(mEditBtn, "translationX",
+                        0,
+                        loc == LOCATION_RIGHT_BOTTOM || loc == LOCATION_RIGHT_TOP
+                                ? res.getDimension(R.dimen.circle_menu_button_3_x)
+                                        : -res.getDimension(R.dimen.circle_menu_button_3_x)
+                        ),
+                ObjectAnimator.ofFloat(mEditBtn, "translationY",
+                        0,
+                        loc == LOCATION_LEFT_BOTTOM || loc == LOCATION_RIGHT_BOTTOM
+                                ? res.getDimension(R.dimen.circle_menu_button_3_y)
+                                        : -res.getDimension(R.dimen.circle_menu_button_3_y)
+                        ),
+                ObjectAnimator.ofFloat(mEditBtn, "scaleX", 1, 0),
+                ObjectAnimator.ofFloat(mEditBtn, "scaleY", 1, 0),
+                ObjectAnimator.ofFloat(mCollectBtn, "translationY",
+                        0,
+                        loc == LOCATION_LEFT_BOTTOM || loc == LOCATION_RIGHT_BOTTOM
+                                ? res.getDimension(R.dimen.circle_menu_radius)
+                                        : -res.getDimension(R.dimen.circle_menu_radius)
+                        ),
+                ObjectAnimator.ofFloat(mCollectBtn, "scaleX", 1, 0),
+                ObjectAnimator.ofFloat(mCollectBtn, "scaleY", 1, 0)
+                );
+
+        return set;
     }
 }

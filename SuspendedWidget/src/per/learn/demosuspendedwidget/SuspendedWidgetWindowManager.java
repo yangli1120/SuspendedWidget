@@ -13,7 +13,6 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.WindowManager;
 import android.view.animation.AccelerateInterpolator;
-import android.view.animation.Animation;
 import android.view.animation.BounceInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.Button;
@@ -55,6 +54,12 @@ public class SuspendedWidgetWindowManager {
     private static int mLastWidgetX = -1;
     private static int mLastWidgetY = -1;
     private static boolean mIsWidgetDragging = false;
+
+    public static final int LOCATION_LEFT_TOP = 0;
+    public static final int LOCATION_RIGHT_TOP = 1;
+    public static final int LOCATION_LEFT_BOTTOM = 2;
+    public static final int LOCATION_RIGHT_BOTTOM = 3;
+    private static int mWidgetCurrentLocation = LOCATION_RIGHT_BOTTOM;
 
     private SuspendedWidgetWindowManager() {}
 
@@ -155,6 +160,9 @@ public class SuspendedWidgetWindowManager {
                                 mSmallWidgetParams.x = 0;
                                 mSmallWidgetParams.y = getStatusBarHeight(context);
 
+                                //update widget's current location
+                                mWidgetCurrentLocation = LOCATION_LEFT_TOP;
+
                                 //mWindowMgr.updateViewLayout(mSmallWidget, mSmallWidgetParams);
                             } else if(curX <= screenWidth / 2 && factY > screenHeight / 2) {
                                 //the target position we want
@@ -162,16 +170,25 @@ public class SuspendedWidgetWindowManager {
                                 mSmallWidgetParams.y = screenHeight - getStatusBarHeight(context)
                                         - widgetHeight;
 
+                                //update widget's current location
+                                mWidgetCurrentLocation = LOCATION_LEFT_BOTTOM;
+
                                 //mWindowMgr.updateViewLayout(mSmallWidget, mSmallWidgetParams);
                             } else if(curX > screenWidth / 2 && factY <= screenHeight / 2) {
                                 mSmallWidgetParams.x = screenWidth - widgetWidth;
                                 mSmallWidgetParams.y = getStatusBarHeight(context);
+
+                                //update widget's current location
+                                mWidgetCurrentLocation = LOCATION_RIGHT_TOP;
 
                                 //mWindowMgr.updateViewLayout(mSmallWidget, mSmallWidgetParams);
                             } else if(curX > screenWidth / 2 && factY > screenHeight / 2) {
                                 mSmallWidgetParams.x = screenWidth - widgetWidth;
                                 mSmallWidgetParams.y = screenHeight - getStatusBarHeight(context)
                                         - widgetHeight;
+
+                                //update widget's current location
+                                mWidgetCurrentLocation = LOCATION_RIGHT_BOTTOM;
 
                                 //mWindowMgr.updateViewLayout(mSmallWidget, mSmallWidgetParams);
                             }
@@ -228,9 +245,20 @@ public class SuspendedWidgetWindowManager {
             mSmallWidgetParams = getWindowManagerParams();
             mSmallWidgetParams.gravity = Gravity.LEFT | Gravity.TOP;
             mSmallWidgetParams.flags |= WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN;
-            mSmallWidgetParams.x = screenWidth - widgetWidth;
-            mSmallWidgetParams.y = screenHeight - getStatusBarHeight(context)
-                    - widgetHeight;
+            mSmallWidgetParams.x = 0;
+            mSmallWidgetParams.y = getStatusBarHeight(context);
+            if(mWidgetCurrentLocation == LOCATION_LEFT_BOTTOM) {
+                mSmallWidgetParams.x = 0;
+                mSmallWidgetParams.y = screenHeight - getStatusBarHeight(context)
+                        - widgetHeight;
+            } else if(mWidgetCurrentLocation == LOCATION_RIGHT_TOP) {
+                mSmallWidgetParams.x = screenWidth - widgetWidth;
+                mSmallWidgetParams.y = getStatusBarHeight(context);
+            } else if(mWidgetCurrentLocation == LOCATION_RIGHT_BOTTOM) {
+                mSmallWidgetParams.x = screenWidth - widgetWidth;
+                mSmallWidgetParams.y = screenHeight - getStatusBarHeight(context)
+                        - widgetHeight;
+            }
 
             mLastWidgetX = mSmallWidgetParams.x;
             mLastWidgetY = mSmallWidgetParams.y;
@@ -285,8 +313,15 @@ public class SuspendedWidgetWindowManager {
             mWindowMgr = getWindowManager(context);
 
         if(mBigWidget == null) {
+            int curLayout = R.layout.layout_big_widget_left_top;
+            if(mWidgetCurrentLocation == LOCATION_LEFT_BOTTOM)
+                curLayout = R.layout.layout_big_widget_left_bottom;
+            else if(mWidgetCurrentLocation == LOCATION_RIGHT_TOP)
+                curLayout = R.layout.layout_big_widget_right_top;
+            else if(mWidgetCurrentLocation == LOCATION_RIGHT_BOTTOM)
+                curLayout = R.layout.layout_big_widget_right_bottom;
             mBigWidget = (RelativeLayout) LayoutInflater.from(context).inflate(
-                    R.layout.layout_big_widget_right_bottom, null);
+                    curLayout, null);
             mBigWidget.setOnClickListener(new View.OnClickListener() {
 
                 @Override
@@ -492,36 +527,7 @@ public class SuspendedWidgetWindowManager {
 
             //play animation
             //translation animation for five child button
-            Resources res = context.getResources();
-            mAnimSet = new AnimatorSet();
-            mAnimSet.playTogether(
-                    ObjectAnimator.ofFloat(mBuyBtn, "translationX",
-                            res.getDimension(R.dimen.circle_menu_radius), 0),
-                    ObjectAnimator.ofFloat(mBuyBtn, "scaleX", 0, 1),
-                    ObjectAnimator.ofFloat(mBuyBtn, "scaleY", 0, 1),
-                    ObjectAnimator.ofFloat(mSelectBtn, "translationX",
-                            res.getDimension(R.dimen.circle_menu_button_1_x), 0),
-                    ObjectAnimator.ofFloat(mSelectBtn, "translationY",
-                            res.getDimension(R.dimen.circle_menu_button_1_y), 0),
-                    ObjectAnimator.ofFloat(mSelectBtn, "scaleX", 0, 1),
-                    ObjectAnimator.ofFloat(mSelectBtn, "scaleY", 0, 1),
-                    ObjectAnimator.ofFloat(mListBtn, "translationX",
-                            res.getDimension(R.dimen.circle_menu_button_2_x), 0),
-                    ObjectAnimator.ofFloat(mListBtn, "translationY",
-                            res.getDimension(R.dimen.circle_menu_button_2_y), 0),
-                    ObjectAnimator.ofFloat(mListBtn, "scaleX", 0, 1),
-                    ObjectAnimator.ofFloat(mListBtn, "scaleY", 0, 1),
-                    ObjectAnimator.ofFloat(mEditBtn, "translationX",
-                            res.getDimension(R.dimen.circle_menu_button_3_x), 0),
-                    ObjectAnimator.ofFloat(mEditBtn, "translationY",
-                            res.getDimension(R.dimen.circle_menu_button_3_y), 0),
-                    ObjectAnimator.ofFloat(mEditBtn, "scaleX", 0, 1),
-                    ObjectAnimator.ofFloat(mEditBtn, "scaleY", 0, 1),
-                    ObjectAnimator.ofFloat(mCollectBtn, "translationY",
-                            res.getDimension(R.dimen.circle_menu_radius), 0),
-                    ObjectAnimator.ofFloat(mCollectBtn, "scaleX", 0, 1),
-                    ObjectAnimator.ofFloat(mCollectBtn, "scaleY", 0, 1)
-                    );
+            mAnimSet = getAnimSetByLocation(context, mWidgetCurrentLocation);
             mAnimSet.setInterpolator(new OvershootInterpolator());
             mAnimSet.setDuration(350).start();
             //rotation animation for the main button
@@ -627,5 +633,68 @@ public class SuspendedWidgetWindowManager {
 
         mLastWidgetX = mSmallWidgetParams.x;
         mLastWidgetY = mSmallWidgetParams.y;
+    }
+
+    private static AnimatorSet getAnimSetByLocation(Context context, int loc) {
+        Resources res = context.getResources();
+        AnimatorSet set = new AnimatorSet();
+        set.playTogether(
+                ObjectAnimator.ofFloat(mBuyBtn, "translationX",
+                        loc == LOCATION_RIGHT_BOTTOM || loc == LOCATION_RIGHT_TOP
+                                ? res.getDimension(R.dimen.circle_menu_radius)
+                                        : -res.getDimension(R.dimen.circle_menu_radius),
+                        0),
+                ObjectAnimator.ofFloat(mBuyBtn, "scaleX", 0, 1),
+                ObjectAnimator.ofFloat(mBuyBtn, "scaleY", 0, 1),
+                ObjectAnimator.ofFloat(mSelectBtn, "translationX",
+                        loc == LOCATION_RIGHT_BOTTOM || loc == LOCATION_RIGHT_TOP
+                                ? res.getDimension(R.dimen.circle_menu_button_1_x)
+                                        : -res.getDimension(R.dimen.circle_menu_button_1_x),
+                        0),
+                ObjectAnimator.ofFloat(mSelectBtn, "translationY",
+                        loc == LOCATION_LEFT_BOTTOM || loc == LOCATION_RIGHT_BOTTOM
+                                ? res.getDimension(R.dimen.circle_menu_button_1_y)
+                                        : -res.getDimension(R.dimen.circle_menu_button_1_y),
+                        0),
+                ObjectAnimator.ofFloat(mSelectBtn, "scaleX", 0, 1),
+                ObjectAnimator.ofFloat(mSelectBtn, "scaleY", 0, 1),
+                ObjectAnimator.ofFloat(mListBtn, "translationX",
+                        loc == LOCATION_RIGHT_BOTTOM || loc == LOCATION_RIGHT_TOP
+                                ? res.getDimension(R.dimen.circle_menu_button_2_x)
+                                        : -res.getDimension(R.dimen.circle_menu_button_2_x),
+                        0),
+                ObjectAnimator.ofFloat(mListBtn, "translationY",
+                        loc == LOCATION_LEFT_BOTTOM || loc == LOCATION_RIGHT_BOTTOM
+                                ? res.getDimension(R.dimen.circle_menu_button_2_y)
+                                        : -res.getDimension(R.dimen.circle_menu_button_2_y),
+                        0),
+                ObjectAnimator.ofFloat(mListBtn, "scaleX", 0, 1),
+                ObjectAnimator.ofFloat(mListBtn, "scaleY", 0, 1),
+                ObjectAnimator.ofFloat(mEditBtn, "translationX",
+                        loc == LOCATION_RIGHT_BOTTOM || loc == LOCATION_RIGHT_TOP
+                                ? res.getDimension(R.dimen.circle_menu_button_3_x)
+                                        : -res.getDimension(R.dimen.circle_menu_button_3_x),
+                        0),
+                ObjectAnimator.ofFloat(mEditBtn, "translationY",
+                        loc == LOCATION_LEFT_BOTTOM || loc == LOCATION_RIGHT_BOTTOM
+                                ? res.getDimension(R.dimen.circle_menu_button_3_y)
+                                        : -res.getDimension(R.dimen.circle_menu_button_3_y),
+                        0),
+                ObjectAnimator.ofFloat(mEditBtn, "scaleX", 0, 1),
+                ObjectAnimator.ofFloat(mEditBtn, "scaleY", 0, 1),
+                ObjectAnimator.ofFloat(mCollectBtn, "translationY",
+                        loc == LOCATION_LEFT_BOTTOM || loc == LOCATION_RIGHT_BOTTOM
+                                ? res.getDimension(R.dimen.circle_menu_radius)
+                                        : -res.getDimension(R.dimen.circle_menu_radius),
+                        0),
+                ObjectAnimator.ofFloat(mCollectBtn, "scaleX", 0, 1),
+                ObjectAnimator.ofFloat(mCollectBtn, "scaleY", 0, 1)
+                );
+
+        return set;
+    }
+
+    private static AnimatorSet getReverseAnimSetByLocation(Context context, int location) {
+        return null;
     }
 }

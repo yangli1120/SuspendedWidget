@@ -13,4 +13,6 @@
     <dimen name="circle_menu_button_2_y">106.06dp</dimen>
     <dimen name="circle_menu_button_3_x">57.40dp</dimen>
     <dimen name="circle_menu_button_3_y">138.58dp</dimen>
+
+    <dimen name="circle_menu_margin_top">25dp</dimen>
 </resources>

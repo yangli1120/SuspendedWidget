@@ -1,76 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/big_widget_rl"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="10dp"
-    android:id="@+id/big_widget_rl"
-    android:background="@color/transparent_dark_bg" >
-    <Button
-        android:id="@+id/small_widget_btn"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
-        android:layout_width="@dimen/small_widget_width"
-        android:layout_height="@dimen/small_widget_height"
-        android:focusable="false"
-        android:focusableInTouchMode="false"
-        android:background="@drawable/bump"/>
+    android:background="@color/transparent_dark_bg"
+    android:padding="10dp" >
 
-    <Button
-        android:id="@+id/buy_btn"
-        android:layout_width="@dimen/small_widget_width"
-        android:layout_height="@dimen/small_widget_height"
-        android:background="@drawable/buy"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginRight="@dimen/circle_menu_radius"
-        android:focusable="false"
-        android:focusableInTouchMode="false" />
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="@dimen/circle_menu_margin_top" >
 
-    <Button
-        android:id="@+id/select_btn"
-        android:layout_width="@dimen/small_widget_width"
-        android:layout_height="@dimen/small_widget_height"
-        android:background="@drawable/select"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginRight="@dimen/circle_menu_button_1_x"
-        android:layout_marginTop="@dimen/circle_menu_button_1_y"
-        android:focusable="false"
-        android:focusableInTouchMode="false" />
+        <Button
+            android:id="@+id/small_widget_btn"
+            android:layout_width="@dimen/small_widget_width"
+            android:layout_height="@dimen/small_widget_height"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:background="@drawable/bump"
+            android:focusable="false"
+            android:focusableInTouchMode="false" />
 
-    <Button
-        android:id="@+id/list_btn"
-        android:layout_width="@dimen/small_widget_width"
-        android:layout_height="@dimen/small_widget_height"
-        android:background="@drawable/list"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginRight="@dimen/circle_menu_button_2_x"
-        android:layout_marginTop="@dimen/circle_menu_button_2_y"
-        android:focusable="false"
-        android:focusableInTouchMode="false" />
+        <Button
+            android:id="@+id/buy_btn"
+            android:layout_width="@dimen/small_widget_width"
+            android:layout_height="@dimen/small_widget_height"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginRight="@dimen/circle_menu_radius"
+            android:background="@drawable/buy"
+            android:focusable="false"
+            android:focusableInTouchMode="false" />
 
-    <Button
-        android:id="@+id/edit_btn"
-        android:layout_width="@dimen/small_widget_width"
-        android:layout_height="@dimen/small_widget_height"
-        android:background="@drawable/edit"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginRight="@dimen/circle_menu_button_3_x"
-        android:layout_marginTop="@dimen/circle_menu_button_3_y"
-        android:focusable="false"
-        android:focusableInTouchMode="false" />
+        <Button
+            android:id="@+id/select_btn"
+            android:layout_width="@dimen/small_widget_width"
+            android:layout_height="@dimen/small_widget_height"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginRight="@dimen/circle_menu_button_1_x"
+            android:layout_marginTop="@dimen/circle_menu_button_1_y"
+            android:background="@drawable/select"
+            android:focusable="false"
+            android:focusableInTouchMode="false" />
 
-    <Button
-        android:id="@+id/collect_btn"
-        android:layout_width="@dimen/small_widget_width"
-        android:layout_height="@dimen/small_widget_height"
-        android:background="@drawable/collect"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="@dimen/circle_menu_radius"
-        android:focusable="false"
-        android:focusableInTouchMode="false" />
+        <Button
+            android:id="@+id/list_btn"
+            android:layout_width="@dimen/small_widget_width"
+            android:layout_height="@dimen/small_widget_height"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginRight="@dimen/circle_menu_button_2_x"
+            android:layout_marginTop="@dimen/circle_menu_button_2_y"
+            android:background="@drawable/list"
+            android:focusable="false"
+            android:focusableInTouchMode="false" />
+
+        <Button
+            android:id="@+id/edit_btn"
+            android:layout_width="@dimen/small_widget_width"
+            android:layout_height="@dimen/small_widget_height"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginRight="@dimen/circle_menu_button_3_x"
+            android:layout_marginTop="@dimen/circle_menu_button_3_y"
+            android:background="@drawable/edit"
+            android:focusable="false"
+            android:focusableInTouchMode="false" />
+
+        <Button
+            android:id="@+id/collect_btn"
+            android:layout_width="@dimen/small_widget_width"
+            android:layout_height="@dimen/small_widget_height"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="@dimen/circle_menu_radius"
+            android:background="@drawable/collect"
+            android:focusable="false"
+            android:focusableInTouchMode="false" />
+    </RelativeLayout>
 
 </RelativeLayout>

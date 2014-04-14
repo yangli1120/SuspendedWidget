@@ -330,8 +330,7 @@ public class SuspendedWidgetWindowManager {
                         //reverse translate animation for five child button
                         mAnimSet = getReverseAnimSetByLocation(context,
                                 mWidgetCurrentLocation);
-                        mAnimSet.setInterpolator(new OvershootInterpolator());
-                        mAnimSet.setDuration(350).start();
+                        mAnimSet.start();
                         //reverse rotation animation for the main button
                         mRotateAnimSet = new AnimatorSet();
                         mRotateAnimSet.playTogether(ObjectAnimator.ofFloat(mSmallWidgetBtn,
@@ -417,8 +416,7 @@ public class SuspendedWidgetWindowManager {
                         //reverse translate animation for five child button
                         mAnimSet = getReverseAnimSetByLocation(context,
                                 mWidgetCurrentLocation);
-                        mAnimSet.setInterpolator(new OvershootInterpolator());
-                        mAnimSet.setDuration(350).start();
+                        mAnimSet.start();
                         //reverse rotation animation for the main button
                         mRotateAnimSet = new AnimatorSet();
                         mRotateAnimSet.playTogether(ObjectAnimator.ofFloat(mSmallWidgetBtn,
@@ -582,20 +580,18 @@ public class SuspendedWidgetWindowManager {
         Resources res = context.getResources();
         AnimatorSet anim1, anim2, anim3, anim4, anim5;
 
-        //animation for button 1
+        //translation animation for button 1
         anim1 = new AnimatorSet();
         anim1.playTogether(
                 ObjectAnimator.ofFloat(mBuyBtn, "translationX",
                 loc == LOCATION_RIGHT_BOTTOM || loc == LOCATION_RIGHT_TOP
                         ? res.getDimension(R.dimen.circle_menu_radius)
                                 : -res.getDimension(R.dimen.circle_menu_radius),
-                0),
-                ObjectAnimator.ofFloat(mBuyBtn, "scaleX", 0, 1),
-                ObjectAnimator.ofFloat(mBuyBtn, "scaleY", 0, 1)
+                0)
                 );
         anim1.setStartDelay(0);
 
-        //animation for button 2
+        //translation animation for button 2
         anim2 = new AnimatorSet();
         anim2.playTogether(
                 ObjectAnimator.ofFloat(mSelectBtn, "translationX",
@@ -607,12 +603,10 @@ public class SuspendedWidgetWindowManager {
                         loc == LOCATION_LEFT_BOTTOM || loc == LOCATION_RIGHT_BOTTOM
                                 ? res.getDimension(R.dimen.circle_menu_button_1_y)
                                         : -res.getDimension(R.dimen.circle_menu_button_1_y),
-                        0),
-                ObjectAnimator.ofFloat(mSelectBtn, "scaleX", 0, 1),
-                ObjectAnimator.ofFloat(mSelectBtn, "scaleY", 0, 1));
+                        0));
         anim2.setStartDelay(30);
 
-        //animation for button 3
+        //translation animation for button 3
         anim3 = new AnimatorSet();
         anim3.playTogether(
                 ObjectAnimator.ofFloat(mListBtn, "translationX",
@@ -624,12 +618,10 @@ public class SuspendedWidgetWindowManager {
                         loc == LOCATION_LEFT_BOTTOM || loc == LOCATION_RIGHT_BOTTOM
                                 ? res.getDimension(R.dimen.circle_menu_button_2_y)
                                         : -res.getDimension(R.dimen.circle_menu_button_2_y),
-                        0),
-                ObjectAnimator.ofFloat(mListBtn, "scaleX", 0, 1),
-                ObjectAnimator.ofFloat(mListBtn, "scaleY", 0, 1));
+                        0));
         anim3.setStartDelay(60);
 
-        //animation for button 4
+        //translation animation for button 4
         anim4 = new AnimatorSet();
         anim4.playTogether(
                 ObjectAnimator.ofFloat(mEditBtn, "translationX",
@@ -641,27 +633,38 @@ public class SuspendedWidgetWindowManager {
                         loc == LOCATION_LEFT_BOTTOM || loc == LOCATION_RIGHT_BOTTOM
                                 ? res.getDimension(R.dimen.circle_menu_button_3_y)
                                         : -res.getDimension(R.dimen.circle_menu_button_3_y),
-                        0),
-                ObjectAnimator.ofFloat(mEditBtn, "scaleX", 0, 1),
-                ObjectAnimator.ofFloat(mEditBtn, "scaleY", 0, 1));
+                        0));
         anim4.setStartDelay(90);
 
-        //animation for button 5
+        //translation animation for button 5
         anim5 = new AnimatorSet();
         anim5.playTogether(
                 ObjectAnimator.ofFloat(mCollectBtn, "translationY",
                         loc == LOCATION_LEFT_BOTTOM || loc == LOCATION_RIGHT_BOTTOM
                                 ? res.getDimension(R.dimen.circle_menu_radius)
                                         : -res.getDimension(R.dimen.circle_menu_radius),
-                        0),
-                ObjectAnimator.ofFloat(mCollectBtn, "scaleX", 0, 1),
-                ObjectAnimator.ofFloat(mCollectBtn, "scaleY", 0, 1)
-                );
+                        0));
         anim5.setStartDelay(120);
 
         //play all animations together
         AnimatorSet set = new AnimatorSet();
-        set.playTogether(anim1, anim2, anim3, anim4, anim5);
+        set.playTogether(
+                anim1,
+                ObjectAnimator.ofFloat(mBuyBtn, "scaleX", 0, 1),
+                ObjectAnimator.ofFloat(mBuyBtn, "scaleY", 0, 1),
+                anim2,
+                ObjectAnimator.ofFloat(mSelectBtn, "scaleX", 0, 1),
+                ObjectAnimator.ofFloat(mSelectBtn, "scaleY", 0, 1),
+                anim3,
+                ObjectAnimator.ofFloat(mListBtn, "scaleX", 0, 1),
+                ObjectAnimator.ofFloat(mListBtn, "scaleY", 0, 1),
+                anim4,
+                ObjectAnimator.ofFloat(mEditBtn, "scaleX", 0, 1),
+                ObjectAnimator.ofFloat(mEditBtn, "scaleY", 0, 1),
+                anim5,
+                ObjectAnimator.ofFloat(mCollectBtn, "scaleX", 0, 1),
+                ObjectAnimator.ofFloat(mCollectBtn, "scaleY", 0, 1)
+                );
         set.setDuration(300);
         set.setInterpolator(new OvershootInterpolator(3.0f));
 
@@ -670,17 +673,24 @@ public class SuspendedWidgetWindowManager {
 
     private static AnimatorSet getReverseAnimSetByLocation(Context context, int loc) {
         Resources res = context.getResources();
+        AnimatorSet anim1, anim2, anim3, anim4, anim5;
 
-        AnimatorSet set = new AnimatorSet();
-        set.playTogether(
+        //translation animation for button 1
+        anim1 = new AnimatorSet();
+        anim1.playTogether(
                 ObjectAnimator.ofFloat(mBuyBtn, "translationX",
                         0,
                         loc == LOCATION_RIGHT_BOTTOM || loc == LOCATION_RIGHT_TOP
                                 ? res.getDimension(R.dimen.circle_menu_radius)
                                         : -res.getDimension(R.dimen.circle_menu_radius)
                         ),
-                ObjectAnimator.ofFloat(mBuyBtn, "scaleX", 1, 0),
-                ObjectAnimator.ofFloat(mBuyBtn, "scaleY", 1, 0),
+                        ObjectAnimator.ofFloat(mBuyBtn, "scaleX", 1, 0),
+                        ObjectAnimator.ofFloat(mBuyBtn, "scaleY", 1, 0));
+        anim1.setStartDelay(0);
+
+        //translation animation for button 2
+        anim2 = new AnimatorSet();
+        anim2.playTogether(
                 ObjectAnimator.ofFloat(mSelectBtn, "translationX",
                         0,
                         loc == LOCATION_RIGHT_BOTTOM || loc == LOCATION_RIGHT_TOP
@@ -693,8 +703,13 @@ public class SuspendedWidgetWindowManager {
                                 ? res.getDimension(R.dimen.circle_menu_button_1_y)
                                         : -res.getDimension(R.dimen.circle_menu_button_1_y)
                         ),
-                ObjectAnimator.ofFloat(mSelectBtn, "scaleX", 1, 0),
-                ObjectAnimator.ofFloat(mSelectBtn, "scaleY", 1, 0),
+                        ObjectAnimator.ofFloat(mSelectBtn, "scaleX", 1, 0),
+                        ObjectAnimator.ofFloat(mSelectBtn, "scaleY", 1, 0));
+        anim2.setStartDelay(30);
+
+        //translation animation for button 3
+        anim3 = new AnimatorSet();
+        anim3.playTogether(
                 ObjectAnimator.ofFloat(mListBtn, "translationX",
                         0,
                         loc == LOCATION_RIGHT_BOTTOM || loc == LOCATION_RIGHT_TOP
@@ -707,8 +722,13 @@ public class SuspendedWidgetWindowManager {
                                 ? res.getDimension(R.dimen.circle_menu_button_2_y)
                                         : -res.getDimension(R.dimen.circle_menu_button_2_y)
                         ),
-                ObjectAnimator.ofFloat(mListBtn, "scaleX", 1, 0),
-                ObjectAnimator.ofFloat(mListBtn, "scaleY", 1, 0),
+                        ObjectAnimator.ofFloat(mListBtn, "scaleX", 1, 0),
+                        ObjectAnimator.ofFloat(mListBtn, "scaleY", 1, 0));
+        anim3.setStartDelay(60);
+
+        //translation animation for button 4
+        anim4 = new AnimatorSet();
+        anim4.playTogether(
                 ObjectAnimator.ofFloat(mEditBtn, "translationX",
                         0,
                         loc == LOCATION_RIGHT_BOTTOM || loc == LOCATION_RIGHT_TOP
@@ -721,17 +741,27 @@ public class SuspendedWidgetWindowManager {
                                 ? res.getDimension(R.dimen.circle_menu_button_3_y)
                                         : -res.getDimension(R.dimen.circle_menu_button_3_y)
                         ),
-                ObjectAnimator.ofFloat(mEditBtn, "scaleX", 1, 0),
-                ObjectAnimator.ofFloat(mEditBtn, "scaleY", 1, 0),
+                        ObjectAnimator.ofFloat(mEditBtn, "scaleX", 1, 0),
+                        ObjectAnimator.ofFloat(mEditBtn, "scaleY", 1, 0));
+        anim4.setStartDelay(90);
+
+        //translation animation for button 5
+        anim5 = new AnimatorSet();
+        anim5.playTogether(
                 ObjectAnimator.ofFloat(mCollectBtn, "translationY",
                         0,
                         loc == LOCATION_LEFT_BOTTOM || loc == LOCATION_RIGHT_BOTTOM
                                 ? res.getDimension(R.dimen.circle_menu_radius)
                                         : -res.getDimension(R.dimen.circle_menu_radius)
                         ),
-                ObjectAnimator.ofFloat(mCollectBtn, "scaleX", 1, 0),
-                ObjectAnimator.ofFloat(mCollectBtn, "scaleY", 1, 0)
-                );
+                        ObjectAnimator.ofFloat(mCollectBtn, "scaleX", 1, 0),
+                        ObjectAnimator.ofFloat(mCollectBtn, "scaleY", 1, 0));
+        anim5.setStartDelay(120);
+
+        AnimatorSet set = new AnimatorSet();
+        set.playTogether(anim1, anim2, anim3, anim4, anim5);
+        set.setDuration(350);
+        set.setInterpolator(new OvershootInterpolator(1.0f));
 
         return set;
     }

@@ -1,4 +1,7 @@
 SuspendedWidget
 ===============
 
-Android, a suspended widget which can show on the Home screen even the host app dismiss
+A circle menu just like the app Path, but you can drag this widget everywhere.
+
+<h1>Show<h1>
+![image](https://github.com/YoungLeeForeverBoy/SuspendedWidget/blob/master/circle%20menu%20.gif?raw=true)
